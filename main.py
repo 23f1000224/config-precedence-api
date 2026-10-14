@@ -84,7 +84,7 @@ def load_config():
 
     return config
 
-
+@app.get("/")
 @app.get("/effective-config")
 def effective_config(
     set: list[str] | None = Query(default=None)
