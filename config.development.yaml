@@ -1,0 +1,4 @@
+port: 8147
+workers: 10
+debug: false
+api_key: key-9s0y7dev32
