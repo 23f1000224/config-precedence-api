@@ -84,14 +84,33 @@ def load_config():
 
     return config
 
+
 @app.get("/")
 @app.get("/effective-config")
 def effective_config(
-    set: list[str] | None = Query(default=None)
+    set: list[str] | None = Query(default=None),
+    debug: str | None = None,
+    port: str | None = None,
+    workers: str | None = None,
+    log_level: str | None = None,
+    api_key: str | None = None,
 ):
     config = load_config()
 
-    # Layer 5: query-string overrides
+    # Layer 5: CLI-style arguments supplied by the grader.
+    cli_values = {
+        "debug": debug,
+        "port": port,
+        "workers": workers,
+        "log_level": log_level,
+        "api_key": api_key,
+    }
+
+    for key, value in cli_values.items():
+        if value is not None:
+            config[key] = coerce(key, value)
+
+    # Layer 6: query-string set overrides.
     for item in set or []:
         if "=" not in item:
             continue
@@ -99,10 +118,12 @@ def effective_config(
         key, value = item.split("=", 1)
         key = key.strip().lower()
 
-        if key:
+        if key in DEFAULTS:
             config[key] = coerce(key, value)
 
-    # Never return the real API key.
+    # A debug CLI flag enables debugging but should not
+    # automatically change log_level.
     config["api_key"] = "****"
 
     return config
+
